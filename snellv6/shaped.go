@@ -7,11 +7,11 @@ import (
 	"sync"
 	"time"
 
-	snell "github.com/sagernet/sing-snell"
-	"github.com/sagernet/sing/common/buf"
-	"github.com/sagernet/sing/common/bufio"
-	E "github.com/sagernet/sing/common/exceptions"
-	N "github.com/sagernet/sing/common/network"
+	snell "github.com/Ember-Moth/sing-snell"
+	"github.com/Ember-Moth/sing-snell/internal/compat"
+	"github.com/metacubex/sing/common/buf"
+	E "github.com/metacubex/sing/common/exceptions"
+	N "github.com/metacubex/sing/common/network"
 )
 
 type shapedWriter struct {
@@ -238,7 +238,7 @@ func (w *shapedWriter) WriteZeroChunk() error {
 }
 
 func (w *shapedWriter) CreateVectorisedWriter() (N.VectorisedWriter, bool) {
-	upstreamWriter, created := bufio.CreateVectorisedWriter(w.upstream)
+	upstreamWriter, created := snell.CreateVectorisedWriter(w.upstream)
 	if !created {
 		return nil, false
 	}
@@ -432,7 +432,7 @@ func (r *shapedReader) read() (*buf.Buffer, error) {
 			return nil, err
 		}
 	}
-	body := r.readWaitOptions.NewBufferSize(payloadLen + snell.AEADTagLen)
+	body := compat.NewBufferSize(r.readWaitOptions, payloadLen+snell.AEADTagLen)
 	_, err = body.ReadFullFrom(r.upstream, payloadLen+snell.AEADTagLen)
 	if err != nil {
 		if padding != nil {

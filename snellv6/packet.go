@@ -6,14 +6,13 @@ import (
 	"os"
 	"sync"
 
-	snell "github.com/sagernet/sing-snell"
-	"github.com/sagernet/sing-snell/internal/reuse"
-	"github.com/sagernet/sing/common"
-	"github.com/sagernet/sing/common/buf"
-	"github.com/sagernet/sing/common/bufio"
-	E "github.com/sagernet/sing/common/exceptions"
-	M "github.com/sagernet/sing/common/metadata"
-	N "github.com/sagernet/sing/common/network"
+	snell "github.com/Ember-Moth/sing-snell"
+	"github.com/Ember-Moth/sing-snell/internal/reuse"
+	"github.com/metacubex/sing/common"
+	"github.com/metacubex/sing/common/buf"
+	E "github.com/metacubex/sing/common/exceptions"
+	M "github.com/metacubex/sing/common/metadata"
+	N "github.com/metacubex/sing/common/network"
 )
 
 const (
@@ -110,8 +109,8 @@ func (c *clientPacketConn) WritePacket(buffer *buf.Buffer, destination M.Socksad
 	return c.writer.WritePacketBuffer(buffer)
 }
 
-func (c *clientPacketConn) CreatePacketBatchWriter() (N.PacketBatchWriter, bool) {
-	upstreamWriter, created := bufio.CreateVectorisedWriter(c.Conn)
+func (c *clientPacketConn) CreatePacketBatchWriter() (snell.PacketBatchWriter, bool) {
+	upstreamWriter, created := snell.CreateVectorisedWriter(c.Conn)
 	if !created {
 		return nil, false
 	}
@@ -313,8 +312,8 @@ func (c *serverPacketConn) WritePacket(buffer *buf.Buffer, destination M.Socksad
 	return writer.WritePacketBuffer(buffer)
 }
 
-func (c *serverPacketConn) CreatePacketBatchWriter() (N.PacketBatchWriter, bool) {
-	upstreamWriter, created := bufio.CreateVectorisedWriter(c.Conn)
+func (c *serverPacketConn) CreatePacketBatchWriter() (snell.PacketBatchWriter, bool) {
+	upstreamWriter, created := snell.CreateVectorisedWriter(c.Conn)
 	if !created {
 		return nil, false
 	}
@@ -434,14 +433,14 @@ func (c *serverPacketConn) WaitReadPacket() (*buf.Buffer, M.Socksaddr, error) {
 }
 
 var (
-	_ N.PacketConn              = (*clientPacketConn)(nil)
-	_ N.PacketReadWaiter        = (*clientPacketConn)(nil)
-	_ N.PacketBatchWriteCreator = (*clientPacketConn)(nil)
-	_ N.WriterWithMTU           = (*clientPacketConn)(nil)
-	_ N.PacketBatchWriter       = (*clientPacketBatchWriter)(nil)
-	_ N.PacketConn              = (*serverPacketConn)(nil)
-	_ N.PacketReadWaiter        = (*serverPacketConn)(nil)
-	_ N.PacketBatchWriteCreator = (*serverPacketConn)(nil)
-	_ N.WriterWithMTU           = (*serverPacketConn)(nil)
-	_ N.PacketBatchWriter       = (*serverPacketBatchWriter)(nil)
+	_ N.PacketConn                  = (*clientPacketConn)(nil)
+	_ N.PacketReadWaiter            = (*clientPacketConn)(nil)
+	_ snell.PacketBatchWriteCreator = (*clientPacketConn)(nil)
+	_ N.WriterWithMTU               = (*clientPacketConn)(nil)
+	_ snell.PacketBatchWriter       = (*clientPacketBatchWriter)(nil)
+	_ N.PacketConn                  = (*serverPacketConn)(nil)
+	_ N.PacketReadWaiter            = (*serverPacketConn)(nil)
+	_ snell.PacketBatchWriteCreator = (*serverPacketConn)(nil)
+	_ N.WriterWithMTU               = (*serverPacketConn)(nil)
+	_ snell.PacketBatchWriter       = (*serverPacketBatchWriter)(nil)
 )

@@ -1,16 +1,16 @@
-module github.com/sagernet/sing-snell/test
+module github.com/Ember-Moth/sing-snell/test
 
 go 1.25.0
 
 require (
+	github.com/Ember-Moth/sing-snell v0.0.0
 	github.com/docker/docker v28.5.2+incompatible
+	github.com/metacubex/sing v0.5.8
 	github.com/opencontainers/image-spec v1.1.1
-	github.com/sagernet/sing v0.8.12-0.20260727003324-d096a164bc7f
-	github.com/sagernet/sing-snell v0.0.0
 	github.com/stretchr/testify v1.11.1
 )
 
-replace github.com/sagernet/sing-snell => ../
+replace github.com/Ember-Moth/sing-snell => ../
 
 require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect

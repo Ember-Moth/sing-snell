@@ -5,14 +5,14 @@ import (
 	"sync"
 	"sync/atomic"
 
-	snell "github.com/sagernet/sing-snell"
-	"github.com/sagernet/sing-snell/internal/reuse"
-	"github.com/sagernet/sing/common"
-	"github.com/sagernet/sing/common/buf"
-	"github.com/sagernet/sing/common/bufio"
-	E "github.com/sagernet/sing/common/exceptions"
-	M "github.com/sagernet/sing/common/metadata"
-	N "github.com/sagernet/sing/common/network"
+	snell "github.com/Ember-Moth/sing-snell"
+	"github.com/Ember-Moth/sing-snell/internal/reuse"
+	"github.com/metacubex/sing/common"
+	"github.com/metacubex/sing/common/buf"
+	"github.com/metacubex/sing/common/bufio"
+	E "github.com/metacubex/sing/common/exceptions"
+	M "github.com/metacubex/sing/common/metadata"
+	N "github.com/metacubex/sing/common/network"
 )
 
 type Client struct {
@@ -207,7 +207,7 @@ func (c *clientConn) WriteBuffer(buffer *buf.Buffer) error {
 }
 
 func (c *clientConn) CreateVectorisedWriter() (N.VectorisedWriter, bool) {
-	upstreamWriter, created := bufio.CreateVectorisedWriter(c.Conn)
+	upstreamWriter, created := snell.CreateVectorisedWriter(c.Conn)
 	if !created {
 		return nil, false
 	}
@@ -325,12 +325,16 @@ func (c *clientConn) RemoteAddr() net.Addr {
 }
 
 var (
-	_ N.ExtendedConn           = (*clientConn)(nil)
-	_ N.ReadWaiter             = (*clientConn)(nil)
-	_ N.ReadWaitCreator        = (*clientConn)(nil)
-	_ N.VectorisedWriteCreator = (*clientConn)(nil)
-	_ N.VectorisedWriter       = (*clientVectorisedWriter)(nil)
-	_ N.EarlyReader            = (*clientConn)(nil)
-	_ N.EarlyWriter            = (*clientConn)(nil)
-	_ N.WriteCloser            = (*clientConn)(nil)
+	_ N.ExtendedConn               = (*clientConn)(nil)
+	_ N.ReadWaiter                 = (*clientConn)(nil)
+	_ N.ReadWaitCreator            = (*clientConn)(nil)
+	_ snell.VectorisedWriteCreator = (*clientConn)(nil)
+	_ N.VectorisedWriter           = (*clientVectorisedWriter)(nil)
+
+	_ N.WriteCloser = (*clientConn)(nil)
 )
+
+// NeedHandshake exposes the pending request to MetaCubeX/sing copy loops.
+func (c *clientConn) NeedHandshake() bool { return c.NeedHandshakeForWrite() }
+
+var _ N.EarlyConn = (*clientConn)(nil)

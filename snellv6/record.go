@@ -6,12 +6,12 @@ import (
 	"io"
 	"sync"
 
-	snell "github.com/sagernet/sing-snell"
-	"github.com/sagernet/sing/common"
-	"github.com/sagernet/sing/common/buf"
-	"github.com/sagernet/sing/common/bufio"
-	E "github.com/sagernet/sing/common/exceptions"
-	N "github.com/sagernet/sing/common/network"
+	snell "github.com/Ember-Moth/sing-snell"
+	"github.com/Ember-Moth/sing-snell/internal/compat"
+	"github.com/metacubex/sing/common"
+	"github.com/metacubex/sing/common/buf"
+	E "github.com/metacubex/sing/common/exceptions"
+	N "github.com/metacubex/sing/common/network"
 )
 
 // Surge 6.7.0 (11520): FUN_100015c54/FUN_1000156e0: non-default records require zero padding length.
@@ -128,7 +128,7 @@ func (r *baseReader) WaitReadBuffer() (buffer *buf.Buffer, err error) {
 		if buffer.Start() >= r.readWaitOptions.FrontHeadroom && buffer.FreeLen() >= r.readWaitOptions.RearHeadroom {
 			return
 		}
-		buffer = r.readWaitOptions.Copy(buffer)
+		buffer = compat.CopyReadBuffer(r.readWaitOptions, buffer)
 		return buffer, nil
 	}
 }
@@ -174,7 +174,7 @@ func (r *unshapedReader) read() (*buf.Buffer, error) {
 	if payloadLen == 0 {
 		return nil, io.EOF
 	}
-	body := r.readWaitOptions.NewBufferSize(payloadLen + snell.AEADTagLen)
+	body := compat.NewBufferSize(r.readWaitOptions, payloadLen+snell.AEADTagLen)
 	_, err = body.ReadFullFrom(r.upstream, payloadLen+snell.AEADTagLen)
 	if err != nil {
 		body.Release()
@@ -281,7 +281,7 @@ func (w *unshapedWriter) WritePacketBuffer(buffer *buf.Buffer) error {
 }
 
 func (w *unshapedWriter) CreateVectorisedWriter() (N.VectorisedWriter, bool) {
-	upstreamWriter, created := bufio.CreateVectorisedWriter(w.upstream)
+	upstreamWriter, created := snell.CreateVectorisedWriter(w.upstream)
 	if !created {
 		return nil, false
 	}
@@ -436,7 +436,7 @@ func (r *rawReader) read() (*buf.Buffer, error) {
 	if payloadLen == 0 {
 		return nil, io.EOF
 	}
-	body := r.readWaitOptions.NewBufferSize(payloadLen)
+	body := compat.NewBufferSize(r.readWaitOptions, payloadLen)
 	_, err = body.ReadFullFrom(r.upstream, payloadLen)
 	if err != nil {
 		body.Release()
@@ -517,7 +517,7 @@ func (w *rawWriter) WritePacketBuffer(buffer *buf.Buffer) error {
 }
 
 func (w *rawWriter) CreateVectorisedWriter() (N.VectorisedWriter, bool) {
-	upstreamWriter, created := bufio.CreateVectorisedWriter(w.upstream)
+	upstreamWriter, created := snell.CreateVectorisedWriter(w.upstream)
 	if !created {
 		return nil, false
 	}
@@ -634,21 +634,21 @@ func (w *rawWriter) Upstream() any {
 }
 
 var (
-	_ N.ExtendedReader         = (*unshapedReader)(nil)
-	_ N.ReadWaiter             = (*unshapedReader)(nil)
-	_ N.ExtendedWriter         = (*unshapedWriter)(nil)
-	_ N.VectorisedWriteCreator = (*unshapedWriter)(nil)
-	_ N.VectorisedWriter       = (*vectorisedUnshapedWriter)(nil)
-	_ N.VectorisedWriter       = (*packetVectorisedUnshapedWriter)(nil)
-	_ N.FrontHeadroom          = (*unshapedWriter)(nil)
-	_ N.ExtendedReader         = (*rawReader)(nil)
-	_ N.ReadWaiter             = (*rawReader)(nil)
-	_ N.ExtendedWriter         = (*rawWriter)(nil)
-	_ N.VectorisedWriteCreator = (*rawWriter)(nil)
-	_ N.VectorisedWriter       = (*vectorisedRawWriter)(nil)
-	_ N.VectorisedWriter       = (*packetVectorisedRawWriter)(nil)
-	_ N.VectorisedWriteCreator = (*shapedWriter)(nil)
-	_ N.WriterWithMTU          = (*unshapedWriter)(nil)
-	_ N.WriterWithMTU          = (*rawWriter)(nil)
-	_ N.WriterWithMTU          = (*shapedWriter)(nil)
+	_ N.ExtendedReader             = (*unshapedReader)(nil)
+	_ N.ReadWaiter                 = (*unshapedReader)(nil)
+	_ N.ExtendedWriter             = (*unshapedWriter)(nil)
+	_ snell.VectorisedWriteCreator = (*unshapedWriter)(nil)
+	_ N.VectorisedWriter           = (*vectorisedUnshapedWriter)(nil)
+	_ N.VectorisedWriter           = (*packetVectorisedUnshapedWriter)(nil)
+	_ N.FrontHeadroom              = (*unshapedWriter)(nil)
+	_ N.ExtendedReader             = (*rawReader)(nil)
+	_ N.ReadWaiter                 = (*rawReader)(nil)
+	_ N.ExtendedWriter             = (*rawWriter)(nil)
+	_ snell.VectorisedWriteCreator = (*rawWriter)(nil)
+	_ N.VectorisedWriter           = (*vectorisedRawWriter)(nil)
+	_ N.VectorisedWriter           = (*packetVectorisedRawWriter)(nil)
+	_ snell.VectorisedWriteCreator = (*shapedWriter)(nil)
+	_ N.WriterWithMTU              = (*unshapedWriter)(nil)
+	_ N.WriterWithMTU              = (*rawWriter)(nil)
+	_ N.WriterWithMTU              = (*shapedWriter)(nil)
 )

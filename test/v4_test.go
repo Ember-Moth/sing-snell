@@ -9,12 +9,11 @@ import (
 	"testing"
 	"time"
 
-	snell "github.com/sagernet/sing-snell"
-	"github.com/sagernet/sing-snell/snellv4"
-	"github.com/sagernet/sing/common/buf"
-	"github.com/sagernet/sing/common/bufio"
-	M "github.com/sagernet/sing/common/metadata"
-	N "github.com/sagernet/sing/common/network"
+	snell "github.com/Ember-Moth/sing-snell"
+	"github.com/Ember-Moth/sing-snell/snellv4"
+	"github.com/metacubex/sing/common/buf"
+	M "github.com/metacubex/sing/common/metadata"
+	N "github.com/metacubex/sing/common/network"
 
 	"github.com/stretchr/testify/require"
 )
@@ -174,7 +173,7 @@ func TestV4TCPVectorisedWriter(t *testing.T) {
 	defer serverConn.Close()
 
 	proxyConn := client.DialEarlyConn(serverConn, M.ParseSocksaddrHostPort("127.0.0.1", echoPort))
-	vectorisedWriter, created := bufio.CreateVectorisedWriter(proxyConn)
+	vectorisedWriter, created := snell.CreateVectorisedWriter(proxyConn)
 	require.True(t, created)
 
 	partA := make([]byte, 700)
@@ -234,7 +233,7 @@ func TestV4UDPPacketBatchWriter(t *testing.T) {
 
 			packetConn, err := client.DialPacketConn(serverConn)
 			require.NoError(t, err)
-			batchWriter, created := bufio.CreatePacketBatchWriter(packetConn)
+			batchWriter, created := snell.CreatePacketBatchWriter(packetConn)
 			require.True(t, created)
 
 			target := M.ParseSocksaddrHostPort("127.0.0.1", echoPort)

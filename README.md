@@ -1,5 +1,7 @@
 # sing-snell
 
+This fork uses `github.com/metacubex/sing` buffers, addresses and network interfaces. Import it as `github.com/Ember-Moth/sing-snell`. Request completion callbacks and optional vectorised/batch writer discovery are owned by this package; they do not require SagerNet/sing.
+
 [Surge snell](https://kb.nssurge.com/surge-knowledge-base/release-notes/snell) implemented in Go.
 
 ## Features

@@ -5,11 +5,11 @@ import (
 	"io"
 	"time"
 
-	snell "github.com/sagernet/sing-snell"
-	"github.com/sagernet/sing-snell/internal/reuse"
-	"github.com/sagernet/sing/common"
-	"github.com/sagernet/sing/common/buf"
-	N "github.com/sagernet/sing/common/network"
+	snell "github.com/Ember-Moth/sing-snell"
+	"github.com/Ember-Moth/sing-snell/internal/reuse"
+	"github.com/metacubex/sing/common"
+	"github.com/metacubex/sing/common/buf"
+	N "github.com/metacubex/sing/common/network"
 )
 
 func writeFirstRecord(conn io.Writer, mode Mode, psk []byte, profile *Profile, payload []byte) (reuse.RecordWriter, error) {

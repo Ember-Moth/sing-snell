@@ -9,14 +9,13 @@ import (
 	"sync"
 	"sync/atomic"
 
-	snell "github.com/sagernet/sing-snell"
-	"github.com/sagernet/sing-snell/internal/reuse"
-	"github.com/sagernet/sing/common"
-	"github.com/sagernet/sing/common/buf"
-	"github.com/sagernet/sing/common/bufio"
-	E "github.com/sagernet/sing/common/exceptions"
-	M "github.com/sagernet/sing/common/metadata"
-	N "github.com/sagernet/sing/common/network"
+	snell "github.com/Ember-Moth/sing-snell"
+	"github.com/Ember-Moth/sing-snell/internal/reuse"
+	"github.com/metacubex/sing/common"
+	"github.com/metacubex/sing/common/buf"
+	E "github.com/metacubex/sing/common/exceptions"
+	M "github.com/metacubex/sing/common/metadata"
+	N "github.com/metacubex/sing/common/network"
 )
 
 const (
@@ -32,7 +31,7 @@ type serverReuseSession[U comparable] struct {
 	writer       reuse.RecordWriter
 }
 
-func (s *serverReuseSession[U]) Serve(ctx context.Context, source M.Socksaddr, onClose N.CloseHandlerFunc, record *buf.Buffer, request snell.Request) (err error) {
+func (s *serverReuseSession[U]) Serve(ctx context.Context, source M.Socksaddr, onClose snell.CloseHandlerFunc, record *buf.Buffer, request snell.Request) (err error) {
 	callOnClose := true
 	if onClose != nil {
 		defer func() {
@@ -341,7 +340,7 @@ func (c *serverReuseConn[U]) WriteBuffer(buffer *buf.Buffer) error {
 }
 
 func (c *serverReuseConn[U]) CreateVectorisedWriter() (N.VectorisedWriter, bool) {
-	upstreamWriter, created := bufio.CreateVectorisedWriter(c.session.Conn)
+	upstreamWriter, created := snell.CreateVectorisedWriter(c.session.Conn)
 	if !created {
 		return nil, false
 	}
@@ -452,9 +451,9 @@ func (c *serverReuseConn[U]) Upstream() any {
 }
 
 var (
-	_ N.ExtendedConn           = (*serverReuseConn[struct{}])(nil)
-	_ N.ReadWaiter             = (*serverReuseConn[struct{}])(nil)
-	_ N.VectorisedWriteCreator = (*serverReuseConn[struct{}])(nil)
-	_ N.VectorisedWriter       = (*serverReuseVectorisedWriter[struct{}])(nil)
-	_ N.WriteCloser            = (*serverReuseConn[struct{}])(nil)
+	_ N.ExtendedConn               = (*serverReuseConn[struct{}])(nil)
+	_ N.ReadWaiter                 = (*serverReuseConn[struct{}])(nil)
+	_ snell.VectorisedWriteCreator = (*serverReuseConn[struct{}])(nil)
+	_ N.VectorisedWriter           = (*serverReuseVectorisedWriter[struct{}])(nil)
+	_ N.WriteCloser                = (*serverReuseConn[struct{}])(nil)
 )

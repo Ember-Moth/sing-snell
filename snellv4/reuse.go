@@ -9,14 +9,13 @@ import (
 	"sync/atomic"
 	"time"
 
-	snell "github.com/sagernet/sing-snell"
-	"github.com/sagernet/sing-snell/internal/reuse"
-	"github.com/sagernet/sing/common"
-	"github.com/sagernet/sing/common/buf"
-	"github.com/sagernet/sing/common/bufio"
-	E "github.com/sagernet/sing/common/exceptions"
-	M "github.com/sagernet/sing/common/metadata"
-	N "github.com/sagernet/sing/common/network"
+	snell "github.com/Ember-Moth/sing-snell"
+	"github.com/Ember-Moth/sing-snell/internal/reuse"
+	"github.com/metacubex/sing/common"
+	"github.com/metacubex/sing/common/buf"
+	E "github.com/metacubex/sing/common/exceptions"
+	M "github.com/metacubex/sing/common/metadata"
+	N "github.com/metacubex/sing/common/network"
 )
 
 func (c *Client) DialContext(ctx context.Context, destination M.Socksaddr) (net.Conn, error) {
@@ -399,7 +398,7 @@ func (c *reuseConn) WriteBuffer(buffer *buf.Buffer) error {
 }
 
 func (c *reuseConn) CreateVectorisedWriter() (N.VectorisedWriter, bool) {
-	upstreamWriter, created := bufio.CreateVectorisedWriter(c.session.Conn)
+	upstreamWriter, created := snell.CreateVectorisedWriter(c.session.Conn)
 	if !created {
 		return nil, false
 	}
@@ -596,12 +595,16 @@ func (c *reuseConn) RemoteAddr() net.Addr {
 }
 
 var (
-	_ N.ExtendedConn           = (*reuseConn)(nil)
-	_ N.ReadWaitCreator        = (*reuseConn)(nil)
-	_ N.VectorisedWriteCreator = (*reuseConn)(nil)
-	_ N.EarlyReader            = (*reuseConn)(nil)
-	_ N.EarlyWriter            = (*reuseConn)(nil)
-	_ N.WriteCloser            = (*reuseConn)(nil)
-	_ N.VectorisedWriter       = (*reuseVectorisedWriter)(nil)
-	_ N.ReadWaiter             = (*reuseReadWaiter)(nil)
+	_ N.ExtendedConn               = (*reuseConn)(nil)
+	_ N.ReadWaitCreator            = (*reuseConn)(nil)
+	_ snell.VectorisedWriteCreator = (*reuseConn)(nil)
+
+	_ N.WriteCloser      = (*reuseConn)(nil)
+	_ N.VectorisedWriter = (*reuseVectorisedWriter)(nil)
+	_ N.ReadWaiter       = (*reuseReadWaiter)(nil)
 )
+
+// NeedHandshake exposes the pending request to MetaCubeX/sing copy loops.
+func (c *reuseConn) NeedHandshake() bool { return c.NeedHandshakeForWrite() }
+
+var _ N.EarlyConn = (*reuseConn)(nil)

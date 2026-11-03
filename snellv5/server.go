@@ -9,14 +9,14 @@ import (
 	"net"
 	"sync"
 
-	snell "github.com/sagernet/sing-snell"
-	"github.com/sagernet/sing/common"
-	"github.com/sagernet/sing/common/auth"
-	"github.com/sagernet/sing/common/buf"
-	"github.com/sagernet/sing/common/bufio"
-	E "github.com/sagernet/sing/common/exceptions"
-	M "github.com/sagernet/sing/common/metadata"
-	N "github.com/sagernet/sing/common/network"
+	snell "github.com/Ember-Moth/sing-snell"
+	"github.com/metacubex/sing/common"
+	"github.com/metacubex/sing/common/auth"
+	"github.com/metacubex/sing/common/buf"
+	"github.com/metacubex/sing/common/bufio"
+	E "github.com/metacubex/sing/common/exceptions"
+	M "github.com/metacubex/sing/common/metadata"
+	N "github.com/metacubex/sing/common/network"
 )
 
 const (
@@ -161,7 +161,7 @@ func NewService(options ServiceOptions) (*Service, error) {
 	}, nil
 }
 
-func (s *Service) NewConnection(ctx context.Context, conn net.Conn, source M.Socksaddr, onClose N.CloseHandlerFunc) error {
+func (s *Service) NewConnection(ctx context.Context, conn net.Conn, source M.Socksaddr, onClose snell.CloseHandlerFunc) error {
 	err := s.newConnection(ctx, conn, source, onClose)
 	if err != nil {
 		return &snell.ServerError{Conn: conn, Source: source, Cause: err}
@@ -208,7 +208,7 @@ func (s *MultiService[U]) UpdateUsers(users []U, userKeys [][]byte) error {
 	return nil
 }
 
-func (s *MultiService[U]) NewConnection(ctx context.Context, conn net.Conn, source M.Socksaddr, onClose N.CloseHandlerFunc) error {
+func (s *MultiService[U]) NewConnection(ctx context.Context, conn net.Conn, source M.Socksaddr, onClose snell.CloseHandlerFunc) error {
 	err := s.newConnection(ctx, conn, source, onClose)
 	if err != nil {
 		return &snell.ServerError{Conn: conn, Source: source, Cause: err}
@@ -261,7 +261,7 @@ func (s *Service) readRequest(record *buf.Buffer) (snell.Request, error) {
 	return request, nil
 }
 
-func (s *Service) newConnection(ctx context.Context, conn net.Conn, source M.Socksaddr, onClose N.CloseHandlerFunc) error {
+func (s *Service) newConnection(ctx context.Context, conn net.Conn, source M.Socksaddr, onClose snell.CloseHandlerFunc) error {
 	conn = s.obfs.ServerConn(conn)
 	salt := make([]byte, snell.SaltLen)
 	_, err := io.ReadFull(conn, salt)
@@ -320,7 +320,7 @@ func (s *Service) newConnection(ctx context.Context, conn net.Conn, source M.Soc
 	}
 }
 
-func (s *Service) newPacketConnection(ctx context.Context, packetConn *serverPacketConn, source M.Socksaddr, onClose N.CloseHandlerFunc) error {
+func (s *Service) newPacketConnection(ctx context.Context, packetConn *serverPacketConn, source M.Socksaddr, onClose snell.CloseHandlerFunc) error {
 	err := packetConn.writeTunnelReply()
 	if err != nil {
 		return err
@@ -335,7 +335,7 @@ func (s *Service) newPacketConnection(ctx context.Context, packetConn *serverPac
 	return nil
 }
 
-func (s *MultiService[U]) newConnection(ctx context.Context, conn net.Conn, source M.Socksaddr, onClose N.CloseHandlerFunc) error {
+func (s *MultiService[U]) newConnection(ctx context.Context, conn net.Conn, source M.Socksaddr, onClose snell.CloseHandlerFunc) error {
 	conn = s.obfs.ServerConn(conn)
 	salt := make([]byte, snell.SaltLen)
 	_, err := io.ReadFull(conn, salt)
@@ -550,7 +550,7 @@ func (c *serverConn) WriteBuffer(buffer *buf.Buffer) error {
 }
 
 func (c *serverConn) CreateVectorisedWriter() (N.VectorisedWriter, bool) {
-	upstreamWriter, created := bufio.CreateVectorisedWriter(c.Conn)
+	upstreamWriter, created := snell.CreateVectorisedWriter(c.Conn)
 	if !created {
 		return nil, false
 	}
@@ -673,9 +673,9 @@ func (s *Service) writePong(conn net.Conn) error {
 }
 
 var (
-	_ N.ExtendedConn           = (*serverConn)(nil)
-	_ N.ReadWaiter             = (*serverConn)(nil)
-	_ N.VectorisedWriteCreator = (*serverConn)(nil)
-	_ N.VectorisedWriter       = (*serverVectorisedWriter)(nil)
-	_ N.WriteCloser            = (*serverConn)(nil)
+	_ N.ExtendedConn               = (*serverConn)(nil)
+	_ N.ReadWaiter                 = (*serverConn)(nil)
+	_ snell.VectorisedWriteCreator = (*serverConn)(nil)
+	_ N.VectorisedWriter           = (*serverVectorisedWriter)(nil)
+	_ N.WriteCloser                = (*serverConn)(nil)
 )

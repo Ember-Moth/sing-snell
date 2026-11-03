@@ -4,9 +4,9 @@ import (
 	"context"
 	"net"
 
-	E "github.com/sagernet/sing/common/exceptions"
-	M "github.com/sagernet/sing/common/metadata"
-	N "github.com/sagernet/sing/common/network"
+	E "github.com/metacubex/sing/common/exceptions"
+	M "github.com/metacubex/sing/common/metadata"
+	N "github.com/metacubex/sing/common/network"
 )
 
 const (
@@ -59,12 +59,12 @@ type Method interface {
 }
 
 type Handler interface {
-	N.TCPConnectionHandlerEx
-	N.UDPConnectionHandlerEx
+	NewConnectionEx(ctx context.Context, conn net.Conn, source M.Socksaddr, destination M.Socksaddr, onClose CloseHandlerFunc)
+	NewPacketConnectionEx(ctx context.Context, conn N.PacketConn, source M.Socksaddr, destination M.Socksaddr, onClose CloseHandlerFunc)
 }
 
 type Service interface {
-	NewConnection(ctx context.Context, conn net.Conn, source M.Socksaddr, onClose N.CloseHandlerFunc) error
+	NewConnection(ctx context.Context, conn net.Conn, source M.Socksaddr, onClose CloseHandlerFunc) error
 }
 
 // snell-server v6.0.0b4: FUN_00141bc0: malformed handshakes are torn down abruptly.

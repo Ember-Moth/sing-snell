@@ -10,13 +10,12 @@ import (
 	"testing"
 	"time"
 
-	snell "github.com/sagernet/sing-snell"
-	"github.com/sagernet/sing-snell/snellv4"
-	"github.com/sagernet/sing-snell/snellv5"
-	"github.com/sagernet/sing/common/buf"
-	"github.com/sagernet/sing/common/bufio"
-	M "github.com/sagernet/sing/common/metadata"
-	N "github.com/sagernet/sing/common/network"
+	snell "github.com/Ember-Moth/sing-snell"
+	"github.com/Ember-Moth/sing-snell/snellv4"
+	"github.com/Ember-Moth/sing-snell/snellv5"
+	"github.com/metacubex/sing/common/buf"
+	M "github.com/metacubex/sing/common/metadata"
+	N "github.com/metacubex/sing/common/network"
 
 	"github.com/stretchr/testify/require"
 )
@@ -250,7 +249,7 @@ func TestV5ServerReuseRejectsWritesAfterCloseWrite(t *testing.T) {
 
 type localEchoHandler struct{}
 
-func (localEchoHandler) NewConnectionEx(ctx context.Context, conn net.Conn, source M.Socksaddr, destination M.Socksaddr, onClose N.CloseHandlerFunc) {
+func (localEchoHandler) NewConnectionEx(ctx context.Context, conn net.Conn, source M.Socksaddr, destination M.Socksaddr, onClose snell.CloseHandlerFunc) {
 	go func() {
 		var closeErr error
 		defer func() {
@@ -304,7 +303,7 @@ type closeThenWriteHandler struct {
 	results         chan closeThenWriteResult
 }
 
-func (h *closeThenWriteHandler) NewConnectionEx(ctx context.Context, conn net.Conn, source M.Socksaddr, destination M.Socksaddr, onClose N.CloseHandlerFunc) {
+func (h *closeThenWriteHandler) NewConnectionEx(ctx context.Context, conn net.Conn, source M.Socksaddr, destination M.Socksaddr, onClose snell.CloseHandlerFunc) {
 	if h.connectionCount.Add(1) > 1 {
 		h.localEchoHandler.NewConnectionEx(ctx, conn, source, destination, onClose)
 		return
@@ -313,7 +312,7 @@ func (h *closeThenWriteHandler) NewConnectionEx(ctx context.Context, conn net.Co
 		_, responseErr := conn.Write([]byte("response"))
 		closeWriteErr := N.CloseWrite(conn)
 		_, writeErr := conn.Write([]byte("late-write"))
-		vectorisedWriter, created := bufio.CreateVectorisedWriter(conn)
+		vectorisedWriter, created := snell.CreateVectorisedWriter(conn)
 		var vectorisedErr error
 		if created {
 			latePayload := []byte("late-vectorised-write")
@@ -335,7 +334,7 @@ func (h *closeThenWriteHandler) NewConnectionEx(ctx context.Context, conn net.Co
 	}()
 }
 
-func (h *closeWhileReadActiveHandler) NewConnectionEx(ctx context.Context, conn net.Conn, source M.Socksaddr, destination M.Socksaddr, onClose N.CloseHandlerFunc) {
+func (h *closeWhileReadActiveHandler) NewConnectionEx(ctx context.Context, conn net.Conn, source M.Socksaddr, destination M.Socksaddr, onClose snell.CloseHandlerFunc) {
 	if h.connectionCount.Add(1) > 1 {
 		h.localEchoHandler.NewConnectionEx(ctx, conn, source, destination, onClose)
 		return
@@ -372,7 +371,7 @@ func (h *closeWhileReadActiveHandler) NewConnectionEx(ctx context.Context, conn 
 	}()
 }
 
-func (h partialEchoHandler) NewConnectionEx(ctx context.Context, conn net.Conn, source M.Socksaddr, destination M.Socksaddr, onClose N.CloseHandlerFunc) {
+func (h partialEchoHandler) NewConnectionEx(ctx context.Context, conn net.Conn, source M.Socksaddr, destination M.Socksaddr, onClose snell.CloseHandlerFunc) {
 	go func() {
 		payload := make([]byte, h.echoLen)
 		_, err := io.ReadFull(conn, payload)
@@ -389,7 +388,7 @@ func (h partialEchoHandler) NewConnectionEx(ctx context.Context, conn net.Conn, 
 	}()
 }
 
-func (localEchoHandler) NewPacketConnectionEx(ctx context.Context, conn N.PacketConn, source M.Socksaddr, destination M.Socksaddr, onClose N.CloseHandlerFunc) {
+func (localEchoHandler) NewPacketConnectionEx(ctx context.Context, conn N.PacketConn, source M.Socksaddr, destination M.Socksaddr, onClose snell.CloseHandlerFunc) {
 	go func() {
 		var closeErr error
 		defer func() {

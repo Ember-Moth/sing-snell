@@ -10,12 +10,12 @@ import (
 	"sync"
 	"time"
 
-	snell "github.com/sagernet/sing-snell"
-	"github.com/sagernet/sing/common"
-	"github.com/sagernet/sing/common/buf"
-	"github.com/sagernet/sing/common/bufio"
-	E "github.com/sagernet/sing/common/exceptions"
-	N "github.com/sagernet/sing/common/network"
+	snell "github.com/Ember-Moth/sing-snell"
+	"github.com/Ember-Moth/sing-snell/internal/compat"
+	"github.com/metacubex/sing/common"
+	"github.com/metacubex/sing/common/buf"
+	E "github.com/metacubex/sing/common/exceptions"
+	N "github.com/metacubex/sing/common/network"
 )
 
 const (
@@ -86,7 +86,7 @@ func (r *reader) ReadRecord() (*buf.Buffer, error) {
 			return nil, err
 		}
 	}
-	body := r.readWaitOptions.NewBufferSize(payloadLen + snell.AEADTagLen)
+	body := compat.NewBufferSize(r.readWaitOptions, payloadLen+snell.AEADTagLen)
 	_, err = body.ReadFullFrom(r.upstream, payloadLen+snell.AEADTagLen)
 	if err != nil {
 		if padding != nil {
@@ -198,7 +198,7 @@ func (r *reader) WaitReadBuffer() (buffer *buf.Buffer, err error) {
 		if buffer.Start() >= r.readWaitOptions.FrontHeadroom && buffer.FreeLen() >= r.readWaitOptions.RearHeadroom {
 			return
 		}
-		buffer = r.readWaitOptions.Copy(buffer)
+		buffer = compat.CopyReadBuffer(r.readWaitOptions, buffer)
 		return buffer, nil
 	}
 }
@@ -602,7 +602,7 @@ func (w *writer) fillPaddingWithBitCount(padding []byte, oneBits int) error {
 }
 
 func (w *writer) CreateVectorisedWriter() (N.VectorisedWriter, bool) {
-	upstreamWriter, created := bufio.CreateVectorisedWriter(w.upstream)
+	upstreamWriter, created := snell.CreateVectorisedWriter(w.upstream)
 	if !created {
 		return nil, false
 	}
@@ -746,13 +746,13 @@ func (w *writer) Upstream() any {
 }
 
 var (
-	_ N.ExtendedReader         = (*reader)(nil)
-	_ N.ReadWaiter             = (*reader)(nil)
-	_ N.ExtendedWriter         = (*writer)(nil)
-	_ N.VectorisedWriteCreator = (*writer)(nil)
-	_ N.VectorisedWriter       = (*vectorisedWriter)(nil)
-	_ N.VectorisedWriter       = (*packetVectorisedWriter)(nil)
-	_ N.FrontHeadroom          = (*writer)(nil)
-	_ N.RearHeadroom           = (*writer)(nil)
-	_ N.WriterWithMTU          = (*writer)(nil)
+	_ N.ExtendedReader             = (*reader)(nil)
+	_ N.ReadWaiter                 = (*reader)(nil)
+	_ N.ExtendedWriter             = (*writer)(nil)
+	_ snell.VectorisedWriteCreator = (*writer)(nil)
+	_ N.VectorisedWriter           = (*vectorisedWriter)(nil)
+	_ N.VectorisedWriter           = (*packetVectorisedWriter)(nil)
+	_ N.FrontHeadroom              = (*writer)(nil)
+	_ N.RearHeadroom               = (*writer)(nil)
+	_ N.WriterWithMTU              = (*writer)(nil)
 )
